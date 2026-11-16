@@ -1,6 +1,6 @@
 # Zentic Relay
 
-A distributed, protocol-compatible relay for [Zentic](https://github.com/getzentic/zentic).
+A distributed, protocol-compatible relay for [Zentic](https://github.com/debin-ge/zentic).
 
 Zentic Relay keeps its public WebSocket protocol independent from its deployment platform. Nodes use OTP only for discovery and route ownership. A deployment adapter reroutes WebSocket upgrades to the owning node, so frames stay inside one BEAM node.
 
@@ -121,14 +121,14 @@ blocked deliveries are shed first.
 Build a production release with `MIX_ENV=prod asdf exec mix release`, or build
 the generic container with `docker build -t zentic-relay .`.
 
-CI publishes `ghcr.io/getzentic/zentic-relay` after successful verification on
+CI publishes `ghcr.io/debin-ge/zentic-relay` after successful verification on
 `main`, tags, and same-repository pull requests. Main also updates
 `latest`; pull requests publish only `sha-<commit>` candidate tags. Pin consumers
 to the `sha256` digest reported in the publish job summary:
 
 ```sh
-docker pull ghcr.io/getzentic/zentic-relay@sha256:<64-hex-digest>
-docker run --rm -p 4000:4000 ghcr.io/getzentic/zentic-relay@sha256:<64-hex-digest>
+docker pull ghcr.io/debin-ge/zentic-relay@sha256:<64-hex-digest>
+docker run --rm -p 4000:4000 ghcr.io/debin-ge/zentic-relay@sha256:<64-hex-digest>
 ```
 
 The image and this environment contract are the supported integration boundary.
