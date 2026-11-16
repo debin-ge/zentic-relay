@@ -456,7 +456,8 @@ defmodule ZenticRelay.BackpressureTest do
 
     on_exit(fn -> resume_process(control_process) end)
 
-    assert :ok = ZenticRelay.Delivery.Writer.control(writer, ~s({"type":"connected","id":"first"}))
+    assert :ok =
+             ZenticRelay.Delivery.Writer.control(writer, ~s({"type":"connected","id":"first"}))
 
     assert :ok =
              ZenticRelay.Delivery.Writer.control(writer, ~s({"type":"connected","id":"second"}))
