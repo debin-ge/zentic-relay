@@ -1,4 +1,4 @@
-defmodule PaseoRelay.HandshakeValidation do
+defmodule ZenticRelay.HandshakeValidation do
   @moduledoc false
 
   import Bitwise, only: [<<<: 2]

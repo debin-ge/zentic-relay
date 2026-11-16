@@ -1,7 +1,7 @@
-defmodule PaseoRelay.Delivery do
+defmodule ZenticRelay.Delivery do
   @moduledoc false
 
-  alias PaseoRelay.Delivery.Writer
+  alias ZenticRelay.Delivery.Writer
 
   def deliver([], _opcode, _payload, _deadline), do: :ok
 

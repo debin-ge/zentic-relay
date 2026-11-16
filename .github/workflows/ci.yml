@@ -40,7 +40,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: meta
         with:
-          images: ghcr.io/getpaseo/paseo-relay
+          images: ghcr.io/getzentic/zentic-relay
           tags: |
             type=raw,value=sha-${{ github.event.pull_request.head.sha || github.sha }}
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
@@ -56,4 +56,4 @@ jobs:
       - name: Record immutable image reference
         env:
           DIGEST: ${{ steps.image.outputs.digest }}
-        run: echo "ghcr.io/getpaseo/paseo-relay@$DIGEST" >> "$GITHUB_STEP_SUMMARY"
+        run: echo "ghcr.io/getzentic/zentic-relay@$DIGEST" >> "$GITHUB_STEP_SUMMARY"

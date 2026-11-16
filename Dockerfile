@@ -10,11 +10,11 @@ RUN mix compile && mix release
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y --no-install-recommends libstdc++6 libsctp1 openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=build /app/_build/prod/rel/paseo_relay ./
+COPY --from=build /app/_build/prod/rel/zentic_relay ./
 ENV HOME=/app \
-    PASEO_RELAY_HOST=0.0.0.0 \
-    PASEO_RELAY_PORT=4000 \
-    PASEO_RELAY_DRAIN=false
+    ZENTIC_RELAY_HOST=0.0.0.0 \
+    ZENTIC_RELAY_PORT=4000 \
+    ZENTIC_RELAY_DRAIN=false
 EXPOSE 4000
-ENTRYPOINT ["/app/bin/paseo_relay"]
+ENTRYPOINT ["/app/bin/zentic_relay"]
 CMD ["start"]

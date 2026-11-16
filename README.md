@@ -1,8 +1,8 @@
-# Paseo Relay
+# Zentic Relay
 
-A distributed, protocol-compatible relay for [Paseo](https://github.com/getpaseo/paseo).
+A distributed, protocol-compatible relay for [Zentic](https://github.com/getzentic/zentic).
 
-Paseo Relay keeps its public WebSocket protocol independent from its deployment platform. Nodes use OTP only for discovery and route ownership. A deployment adapter reroutes WebSocket upgrades to the owning node, so frames stay inside one BEAM node.
+Zentic Relay keeps its public WebSocket protocol independent from its deployment platform. Nodes use OTP only for discovery and route ownership. A deployment adapter reroutes WebSocket upgrades to the owning node, so frames stay inside one BEAM node.
 
 This project is under active development and its internal protocols may change without notice.
 
@@ -36,27 +36,27 @@ generic:
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `PASEO_RELAY_HOST` | `127.0.0.1` | Public listener IP. |
-| `PASEO_RELAY_PORT` | `4000` | Public HTTP/WebSocket listener. |
-| `PASEO_RELAY_DRAIN` | `false` | Start not-ready while existing sessions drain. |
-| `PASEO_RELAY_OWNERSHIP_TARGET` | `local` | Opaque target advertised to other relay nodes. |
-| `PASEO_RELAY_REROUTE_HEADER` | `x-reroute-target` | Response header used by the deployment adapter. |
-| `PASEO_RELAY_CLUSTER_QUERY` | unset | Optional DNS query used to discover BEAM peers. |
-| `PASEO_RELAY_CLUSTER_NODES` | unset | Optional comma-separated `name@host` peers, connected at startup and retried every 5 seconds alongside DNS discovery. |
-| `PASEO_RELAY_MIN_CLUSTER_SIZE` | `1` | Minimum nodes required before accepting unowned sessions. |
-| `PASEO_RELAY_ACCEPTORS` | `100` | Listener acceptor processes. |
-| `PASEO_RELAY_CONNECTIONS_PER_ACCEPTOR` | `200` | Capacity factor multiplied by the acceptor count to set the node-local active-WebSocket ceiling; the default is 20,000. |
-| `PASEO_RELAY_HTTP_IDLE_TIMEOUT_MS` | `15000` | Maximum idle time for pre-upgrade HTTP parsing and unread request bodies. Upgraded WebSockets remain exempt. |
-| `PASEO_RELAY_CAPACITY_MUTATION_TIMEOUT_MS` | `5000` | Maximum wait for a state-changing Capacity decision before the exact ledger epoch is invalidated. Choose a value appropriate to the runtime. |
-| `PASEO_RELAY_INGRESS_BUDGET_BYTES` | `536870912` | Node-wide weighted ceiling for complete WebSocket messages admitted to relay delivery. Must admit one maximum message at the configured weight. |
-| `PASEO_RELAY_INGRESS_WEIGHT` | `4` | Conservative memory weight charged per wire payload byte. |
-| `PASEO_RELAY_DELIVERY_TIMEOUT_MS` | `30000` | Maximum Writer reservation/write-barrier wait before a slow destination is shed. Also the shared budget for starting delivery of a closing peer's last messages. |
-| `PASEO_RELAY_TRANSPORT_SEND_TIMEOUT_MS` | `35000` | TCP send timeout. Must be greater than the Writer deadline so application shedding is recorded before the transport's final fallback. |
-| `PASEO_RELAY_CONTROL_QUEUE_BYTES` | `1048576` | Per-destination bound for queued control notifications. |
-| `PASEO_RELAY_DATA_ATTACH_TIMEOUT_MS` | `15000` | Maximum time a v2 client frame waits for its daemon-data socket. |
-| `PASEO_RELAY_TCP_RECEIVE_BUFFER_BYTES` | `65536` | Per-socket TCP receive buffer. |
-| `PASEO_RELAY_WEBSOCKET_MAX_HEAP_WORDS` | `33554432` | Per-WebSocket BEAM heap fuse, including shared binaries. Values below this protocol-safe floor are rejected. |
-| `PASEO_RELAY_MEMORY_WATERMARK_BYTES` | `0` | Optional BEAM total-memory watermark that pauses admission and sheds WebSockets with `1013` until measured memory reaches the recovery threshold; disabled generically because the safe threshold depends on the deployment memory limit. |
+| `ZENTIC_RELAY_HOST` | `127.0.0.1` | Public listener IP. |
+| `ZENTIC_RELAY_PORT` | `4000` | Public HTTP/WebSocket listener. |
+| `ZENTIC_RELAY_DRAIN` | `false` | Start not-ready while existing sessions drain. |
+| `ZENTIC_RELAY_OWNERSHIP_TARGET` | `local` | Opaque target advertised to other relay nodes. |
+| `ZENTIC_RELAY_REROUTE_HEADER` | `x-reroute-target` | Response header used by the deployment adapter. |
+| `ZENTIC_RELAY_CLUSTER_QUERY` | unset | Optional DNS query used to discover BEAM peers. |
+| `ZENTIC_RELAY_CLUSTER_NODES` | unset | Optional comma-separated `name@host` peers, connected at startup and retried every 5 seconds alongside DNS discovery. |
+| `ZENTIC_RELAY_MIN_CLUSTER_SIZE` | `1` | Minimum nodes required before accepting unowned sessions. |
+| `ZENTIC_RELAY_ACCEPTORS` | `100` | Listener acceptor processes. |
+| `ZENTIC_RELAY_CONNECTIONS_PER_ACCEPTOR` | `200` | Capacity factor multiplied by the acceptor count to set the node-local active-WebSocket ceiling; the default is 20,000. |
+| `ZENTIC_RELAY_HTTP_IDLE_TIMEOUT_MS` | `15000` | Maximum idle time for pre-upgrade HTTP parsing and unread request bodies. Upgraded WebSockets remain exempt. |
+| `ZENTIC_RELAY_CAPACITY_MUTATION_TIMEOUT_MS` | `5000` | Maximum wait for a state-changing Capacity decision before the exact ledger epoch is invalidated. Choose a value appropriate to the runtime. |
+| `ZENTIC_RELAY_INGRESS_BUDGET_BYTES` | `536870912` | Node-wide weighted ceiling for complete WebSocket messages admitted to relay delivery. Must admit one maximum message at the configured weight. |
+| `ZENTIC_RELAY_INGRESS_WEIGHT` | `4` | Conservative memory weight charged per wire payload byte. |
+| `ZENTIC_RELAY_DELIVERY_TIMEOUT_MS` | `30000` | Maximum Writer reservation/write-barrier wait before a slow destination is shed. Also the shared budget for starting delivery of a closing peer's last messages. |
+| `ZENTIC_RELAY_TRANSPORT_SEND_TIMEOUT_MS` | `35000` | TCP send timeout. Must be greater than the Writer deadline so application shedding is recorded before the transport's final fallback. |
+| `ZENTIC_RELAY_CONTROL_QUEUE_BYTES` | `1048576` | Per-destination bound for queued control notifications. |
+| `ZENTIC_RELAY_DATA_ATTACH_TIMEOUT_MS` | `15000` | Maximum time a v2 client frame waits for its daemon-data socket. |
+| `ZENTIC_RELAY_TCP_RECEIVE_BUFFER_BYTES` | `65536` | Per-socket TCP receive buffer. |
+| `ZENTIC_RELAY_WEBSOCKET_MAX_HEAP_WORDS` | `33554432` | Per-WebSocket BEAM heap fuse, including shared binaries. Values below this protocol-safe floor are rejected. |
+| `ZENTIC_RELAY_MEMORY_WATERMARK_BYTES` | `0` | Optional BEAM total-memory watermark that pauses admission and sheds WebSockets with `1013` until measured memory reaches the recovery threshold; disabled generically because the safe threshold depends on the deployment memory limit. |
 | `RELEASE_NODE` / `RELEASE_COOKIE` | unset | Standard distributed-release identity. |
 
 `GET /health` is a liveness probe. `GET /ready` returns `200` only while the
@@ -119,16 +119,16 @@ Generic operators should set a nonzero watermark from their runtime limit;
 blocked deliveries are shed first.
 
 Build a production release with `MIX_ENV=prod asdf exec mix release`, or build
-the generic container with `docker build -t paseo-relay .`.
+the generic container with `docker build -t zentic-relay .`.
 
-CI publishes `ghcr.io/getpaseo/paseo-relay` after successful verification on
+CI publishes `ghcr.io/getzentic/zentic-relay` after successful verification on
 `main`, tags, and same-repository pull requests. Main also updates
 `latest`; pull requests publish only `sha-<commit>` candidate tags. Pin consumers
 to the `sha256` digest reported in the publish job summary:
 
 ```sh
-docker pull ghcr.io/getpaseo/paseo-relay@sha256:<64-hex-digest>
-docker run --rm -p 4000:4000 ghcr.io/getpaseo/paseo-relay@sha256:<64-hex-digest>
+docker pull ghcr.io/getzentic/zentic-relay@sha256:<64-hex-digest>
+docker run --rm -p 4000:4000 ghcr.io/getzentic/zentic-relay@sha256:<64-hex-digest>
 ```
 
 The image and this environment contract are the supported integration boundary.

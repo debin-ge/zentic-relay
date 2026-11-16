@@ -125,7 +125,7 @@
 - Final native-Cowboy gates: `mix format --check-formatted`, forced
   `mix compile --warnings-as-errors`, `mix deps.unlock --check-unused`, and
   `git diff --check` all exited zero. `MIX_ENV=prod mix release --overwrite`
-  assembled `paseo_relay-0.1.0`; the release was not started or deployed.
+  assembled `zentic_relay-0.1.0`; the release was not started or deployed.
 - Completion gate after the all-socket pressure and externally-owned gauge
   fixes: the complete suite passed 68/68 in 99.4 seconds. Warnings-as-errors
   test and production compilation, formatting, lock validation, release build,
@@ -151,7 +151,7 @@
   one backpressured source and seven in-flight bytes. Killing the old ingress
   singleton also allowed its empty replacement to exist while old connections
   were still closing.
-- Green: `PaseoRelay.Capacity` is now the single monitored ledger for connection
+- Green: `ZenticRelay.Capacity` is now the single monitored ledger for connection
   reservations, attached sockets, explicit per-message tokens, retained bytes,
   delivery transitions, pressure order, and all four transient gauges. The
   heap-fuse boundary returns every gauge to baseline without running
@@ -288,7 +288,7 @@
 
 ### Reject invalid upgrades before ownership
 
-- Red: `mix test test/paseo_relay/router_integration_test.exs:18` sent a plain
+- Red: `mix test test/zentic_relay/router_integration_test.exs:18` sent a plain
   `GET /ws` request and reached ownership before WebSocket upgrade validation.
 - Green: the same real TCP request receives `426 Expected WebSocket upgrade`
   and `Ownership.owner_pid/1` returns `:undefined`.
@@ -357,7 +357,7 @@
 
 ## Complete malformed-handshake validation
 
-- Red: `mix test test/paseo_relay/router_integration_test.exs:28` sent
+- Red: `mix test test/zentic_relay/router_integration_test.exs:28` sent
   `Upgrade: websocket` without `Connection: Upgrade`, reached routing, and
   created an owner before the handshake failed.
 - Green: the Cowboy handler checks `is_upgrade_request/1` before
@@ -419,7 +419,7 @@
   The same reserved-owner regression returns the existing
   `1012 Session expired` close path. Lookup-to-reserve and
   reservation-to-attach use the same bounded call boundary.
-- Red: killing `PaseoRelay.Metrics` with `:kill` left the old listener-specific
+- Red: killing `ZenticRelay.Metrics` with `:kill` left the old listener-specific
   telemetry handler registered. The replacement failed with `already_exists`,
   exhausted the application supervisor, and left the relay stopped.
 - Green: the native listener has an explicit active-WebSocket admission boundary
@@ -438,7 +438,7 @@
   until every observer sees the exact expected count from every origin. It then
   resolves sampled IDs from a non-owner node and verifies their opaque reroute
   targets.
-- With `PASEO_OWNERSHIP_SURGE_COUNT=50000`, registration, full three-node count
+- With `ZENTIC_OWNERSHIP_SURGE_COUNT=50000`, registration, full three-node count
   convergence, and cross-node route sampling complete in roughly 1.5 seconds on
   the local test cluster.
 
@@ -475,7 +475,7 @@
   `asdf exec mix compile --warnings-as-errors` compiled two changed files and
   exited 0; `git diff --check` exited 0; and
   `MIX_ENV=prod asdf exec mix release --overwrite` assembled
-  `paseo_relay-0.1.0` successfully. The release was not started or deployed.
+  `zentic_relay-0.1.0` successfully. The release was not started or deployed.
 
 ## Final admission, deadline, and pressure boundaries
 
@@ -618,7 +618,7 @@
   handling, binary legacy input, pipelined frames, rejection behavior, and
   accepted/rejected metric increments.
 - Final targeted gate: `asdf exec mix test
-  test/paseo_relay/handshake_validation_test.exs test/relay_protocol_test.exs`
+  test/zentic_relay/handshake_validation_test.exs test/relay_protocol_test.exs`
   passed 20/20 in 81.4 seconds. `asdf exec mix format`, `asdf exec mix compile
   --warnings-as-errors --force`, and `git diff --check` exited zero.
 
@@ -679,9 +679,9 @@
 
 ## Static peer discovery
 
-- Red: `mix test test/paseo_relay/static_cluster_test.exs` started an isolated
+- Red: `mix test test/zentic_relay/static_cluster_test.exs` started an isolated
   real `:peer` over its standard-I/O control channel (not distribution), loaded
-  `PASEO_RELAY_CLUSTER_NODES`, and failed with `KeyError :cluster_nodes` before
+  `ZENTIC_RELAY_CLUSTER_NODES`, and failed with `KeyError :cluster_nodes` before
   implementation. Green: the configured peer connects without DNS, reconnects
   after `Node.disconnect/1`, and ignores its own node name. Malformed names are
   rejected at the configuration boundary; unset peers leave discovery disabled.

@@ -1,4 +1,4 @@
-defmodule PaseoRelay.Drain do
+defmodule ZenticRelay.Drain do
   @moduledoc """
   Process-local admission state for graceful relay maintenance.
 

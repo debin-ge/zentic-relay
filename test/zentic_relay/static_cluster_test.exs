@@ -1,4 +1,4 @@
-defmodule PaseoRelay.StaticClusterTest do
+defmodule ZenticRelay.StaticClusterTest do
   use ExUnit.Case, async: false
 
   test "static peers are parsed, connected, and reconnected without DNS discovery" do
@@ -13,23 +13,23 @@ defmodule PaseoRelay.StaticClusterTest do
     refute peer_node in Node.list()
 
     {:ok, config} =
-      PaseoRelay.Config.load(%{
-        "PASEO_RELAY_CLUSTER_NODES" => " #{peer_node}, #{node()},#{peer_node} "
+      ZenticRelay.Config.load(%{
+        "ZENTIC_RELAY_CLUSTER_NODES" => " #{peer_node}, #{node()},#{peer_node} "
       })
 
     assert config.cluster_nodes == [peer_node, node()]
-    start_supervised!({PaseoRelay.StaticCluster, nodes: config.cluster_nodes, interval: 50})
+    start_supervised!({ZenticRelay.StaticCluster, nodes: config.cluster_nodes, interval: 50})
     await_connection(peer_node)
     assert Node.disconnect(peer_node)
     await_connection(peer_node)
   end
 
   test "the static peer boundary rejects malformed node names" do
-    assert {:ok, %{cluster_nodes: []}} = PaseoRelay.Config.load(%{})
+    assert {:ok, %{cluster_nodes: []}} = ZenticRelay.Config.load(%{})
 
     for value <- ["not-a-node", "name@host@extra", "name@bad host"] do
-      assert {:error, "PASEO_RELAY_CLUSTER_NODES" <> _} =
-               PaseoRelay.Config.load(%{"PASEO_RELAY_CLUSTER_NODES" => value})
+      assert {:error, "ZENTIC_RELAY_CLUSTER_NODES" <> _} =
+               ZenticRelay.Config.load(%{"ZENTIC_RELAY_CLUSTER_NODES" => value})
     end
   end
 

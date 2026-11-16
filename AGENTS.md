@@ -1,6 +1,6 @@
-# Paseo Relay — Agent Guide
+# Zentic Relay — Agent Guide
 
-Paseo Relay is an Elixir/OTP WebSocket relay for Paseo. Cowboy/Ranch serves
+Zentic Relay is an Elixir/OTP WebSocket relay for Zentic. Cowboy/Ranch serves
 the listener; a per-serverId Owner and Syn registry keep each session on
 one BEAM node. Frames are end-to-end encrypted.
 

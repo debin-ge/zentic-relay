@@ -1,8 +1,8 @@
-defmodule PaseoRelay.OwnershipTest do
+defmodule ZenticRelay.OwnershipTest do
   use ExUnit.Case
 
-  alias PaseoRelay.Ownership
-  alias PaseoRelay.Ownership.Owner
+  alias ZenticRelay.Ownership
+  alias ZenticRelay.Ownership.Owner
 
   test "claims an unowned server locally and keeps later local requests local" do
     assert :local = Ownership.claim("server-a", "opaque-owner-a")
@@ -68,24 +68,24 @@ defmodule PaseoRelay.OwnershipTest do
   end
 end
 
-defmodule PaseoRelay.RerouteTest do
+defmodule ZenticRelay.RerouteTest do
   use ExUnit.Case, async: true
 
   test "renders an opaque reroute target into a configured response header" do
     assert %{"x-reroute-target" => "machine-opaque-id"} =
-             PaseoRelay.Reroute.headers({:reroute, "machine-opaque-id"}, "x-reroute-target")
+             ZenticRelay.Reroute.headers({:reroute, "machine-opaque-id"}, "x-reroute-target")
 
-    assert %{} = PaseoRelay.Reroute.headers(:local, "x-reroute-target")
+    assert %{} = ZenticRelay.Reroute.headers(:local, "x-reroute-target")
   end
 end
 
-defmodule PaseoRelay.DistributedOwnershipTest do
+defmodule ZenticRelay.DistributedOwnershipTest do
   use ExUnit.Case
 
-  alias PaseoRelay.Ownership
-  alias PaseoRelay.PartitionClient
+  alias ZenticRelay.Ownership
+  alias ZenticRelay.PartitionClient
 
-  @surge_count String.to_integer(System.get_env("PASEO_OWNERSHIP_SURGE_COUNT", "1000"))
+  @surge_count String.to_integer(System.get_env("ZENTIC_OWNERSHIP_SURGE_COUNT", "1000"))
 
   setup_all do
     unless Node.alive?() do
@@ -356,18 +356,18 @@ defmodule PaseoRelay.DistributedOwnershipTest do
     load_module(peer, PartitionClient)
 
     config = %{
-      PaseoRelay.Config.defaults()
+      ZenticRelay.Config.defaults()
       | port: 0,
         ownership_target: Atom.to_string(peer),
         reroute_header: "x-reroute-target"
     }
 
-    :ok = :rpc.call(peer, :application, :set_env, [:paseo_relay, :runtime, config])
+    :ok = :rpc.call(peer, :application, :set_env, [:zentic_relay, :runtime, config])
 
     {:ok, _applications} =
-      :rpc.call(peer, :application, :ensure_all_started, [:paseo_relay])
+      :rpc.call(peer, :application, :ensure_all_started, [:zentic_relay])
 
-    :rpc.call(peer, :ranch, :get_port, [PaseoRelay.Listener])
+    :rpc.call(peer, :ranch, :get_port, [ZenticRelay.Listener])
   end
 
   defp load_module(peer, module) do
@@ -465,8 +465,8 @@ defmodule PaseoRelay.DistributedOwnershipTest do
   defp lookup_owner(observer, server_id) do
     result =
       if observer == node(),
-        do: :syn.lookup(:paseo_relay_owners, server_id),
-        else: :rpc.call(observer, :syn, :lookup, [:paseo_relay_owners, server_id])
+        do: :syn.lookup(:zentic_relay_owners, server_id),
+        else: :rpc.call(observer, :syn, :lookup, [:zentic_relay_owners, server_id])
 
     case result do
       {process, _metadata} -> node(process)
@@ -618,7 +618,7 @@ defmodule PaseoRelay.DistributedOwnershipTest do
   defp start_syn(peer) do
     :ok = :rpc.call(peer, :application, :set_env, [:syn, :strict_mode, true])
     {:ok, _applications} = :rpc.call(peer, :application, :ensure_all_started, [:syn])
-    :ok = :rpc.call(peer, :syn, :add_node_to_scopes, [[:paseo_relay_owners]])
+    :ok = :rpc.call(peer, :syn, :add_node_to_scopes, [[:zentic_relay_owners]])
   end
 
   defp await_syn_cluster(nodes) do
@@ -629,7 +629,7 @@ defmodule PaseoRelay.DistributedOwnershipTest do
   defp await_syn_cluster(nodes, deadline) do
     members =
       Enum.map(nodes, fn peer ->
-        :rpc.call(peer, :syn, :subcluster_nodes, [:registry, :paseo_relay_owners])
+        :rpc.call(peer, :syn, :subcluster_nodes, [:registry, :zentic_relay_owners])
       end)
 
     converged =

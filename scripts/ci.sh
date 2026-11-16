@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly release_port="${PASEO_RELAY_CI_RELEASE_PORT:-4400}"
-readonly container_port="${PASEO_RELAY_CI_CONTAINER_PORT:-4401}"
+readonly release_port="${ZENTIC_RELAY_CI_RELEASE_PORT:-4400}"
+readonly container_port="${ZENTIC_RELAY_CI_CONTAINER_PORT:-4401}"
 readonly run_id="${GITHUB_RUN_ID:-local}-$$"
-readonly generic_image="paseo-relay-ci-generic:${run_id}"
-readonly generic_container="paseo-relay-ci-generic-${run_id}"
+readonly generic_image="zentic-relay-ci-generic:${run_id}"
+readonly generic_container="zentic-relay-ci-generic-${run_id}"
 
 release_pid=""
 
@@ -42,7 +42,7 @@ assert_operations_contract() {
   [[ "$(curl --fail --silent --show-error "${base_url}/health")" == '{"status":"ok"}' ]]
   [[ "$(curl --fail --silent --show-error "${base_url}/ready")" == '{"status":"ready"}' ]]
   metrics="$(curl --fail --silent --show-error "${base_url}/metrics")"
-  grep --quiet '^paseo_relay_ready 1$' <<<"${metrics}"
+  grep --quiet '^zentic_relay_ready 1$' <<<"${metrics}"
 }
 
 mix deps.get
@@ -54,10 +54,10 @@ mix test
 env MIX_ENV=prod mix compile --warnings-as-errors
 env MIX_ENV=prod mix release --overwrite
 
-PASEO_RELAY_HOST=127.0.0.1 \
-PASEO_RELAY_PORT="${release_port}" \
-PASEO_RELAY_MIN_CLUSTER_SIZE=1 \
-  _build/prod/rel/paseo_relay/bin/paseo_relay start &
+ZENTIC_RELAY_HOST=127.0.0.1 \
+ZENTIC_RELAY_PORT="${release_port}" \
+ZENTIC_RELAY_MIN_CLUSTER_SIZE=1 \
+  _build/prod/rel/zentic_relay/bin/zentic_relay start &
 release_pid=$!
 wait_for_endpoint "http://127.0.0.1:${release_port}/health"
 assert_operations_contract "http://127.0.0.1:${release_port}"

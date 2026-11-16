@@ -1,8 +1,8 @@
 import Config
 
 if config_env() == :prod do
-  {:ok, operations} = PaseoRelay.Config.load()
+  {:ok, operations} = ZenticRelay.Config.load()
 
-  config :paseo_relay,
+  config :zentic_relay,
     runtime: operations
 end

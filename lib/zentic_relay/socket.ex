@@ -1,14 +1,14 @@
-defmodule PaseoRelay.Socket do
+defmodule ZenticRelay.Socket do
   @moduledoc false
 
   @behaviour :cowboy_websocket
 
-  alias PaseoRelay.Capacity
-  alias PaseoRelay.Delivery
-  alias PaseoRelay.Delivery.Deadline
-  alias PaseoRelay.Delivery.Writer
-  alias PaseoRelay.HandshakeValidation
-  alias PaseoRelay.Ownership.Owner
+  alias ZenticRelay.Capacity
+  alias ZenticRelay.Delivery
+  alias ZenticRelay.Delivery.Deadline
+  alias ZenticRelay.Delivery.Writer
+  alias ZenticRelay.HandshakeValidation
+  alias ZenticRelay.Ownership.Owner
 
   @impl true
   def init(request, options) do
@@ -30,18 +30,18 @@ defmodule PaseoRelay.Socket do
       {:cowboy_websocket, request, state, websocket_options(connection)}
     else
       {:reroute, _target} = decision ->
-        PaseoRelay.Metrics.inc(:reroute_responses)
+        ZenticRelay.Metrics.inc(:reroute_responses)
         reply(request, 409, reroute_headers(decision, options.reroute_header), "")
 
       {:unavailable, reason} ->
         reply(request, 503, %{}, Atom.to_string(reason))
 
       {:error, :capacity} ->
-        PaseoRelay.Metrics.inc(:connection_rejections)
+        ZenticRelay.Metrics.inc(:connection_rejections)
         reply(request, 503, %{}, "Relay connection capacity")
 
       {:error, :pressure} ->
-        PaseoRelay.Metrics.inc(:connection_rejections)
+        ZenticRelay.Metrics.inc(:connection_rejections)
         reply(request, 503, %{}, "Relay memory pressure")
 
       {:error, :configuration_mismatch} ->
@@ -100,9 +100,9 @@ defmodule PaseoRelay.Socket do
   end
 
   def websocket_handle({opcode, payload}, state) when opcode in [:text, :binary] do
-    PaseoRelay.Metrics.observe_frame(byte_size(payload))
+    ZenticRelay.Metrics.observe_frame(byte_size(payload))
 
-    case PaseoRelay.Capacity.admit_message(
+    case ZenticRelay.Capacity.admit_message(
            byte_size(payload),
            state.config.capacity_mutation_timeout_ms
          ) do
@@ -171,7 +171,7 @@ defmodule PaseoRelay.Socket do
 
     if delivery = state[:delivery] do
       stop_delivery_task(delivery)
-      PaseoRelay.Capacity.cancel_message(delivery.token)
+      ZenticRelay.Capacity.cancel_message(delivery.token)
     end
 
     Capacity.release_connection(admission_token(state.admission))
@@ -250,12 +250,12 @@ defmodule PaseoRelay.Socket do
         forward_admitted_input(opcode, payload, token, state)
 
       {:accept, type} ->
-        PaseoRelay.Metrics.observe_handshake(:accepted, state.connection.version, type)
+        ZenticRelay.Metrics.observe_handshake(:accepted, state.connection.version, type)
         forward_admitted_input(opcode, payload, token, state)
 
       {:reject, type} ->
-        PaseoRelay.Metrics.observe_handshake(:rejected, state.connection.version, type)
-        :ok = PaseoRelay.Capacity.finish_message(token)
+        ZenticRelay.Metrics.observe_handshake(:rejected, state.connection.version, type)
+        :ok = ZenticRelay.Capacity.finish_message(token)
         {[{:close, 1008, "Invalid handshake key"}], state}
     end
   end
@@ -278,7 +278,7 @@ defmodule PaseoRelay.Socket do
   # The Capacity call always keeps its configured timeout: an expiry kills the ledger.
   # A close drain passes its own deadline so every delivery shares one bound.
   defp start_delivery(opcode, payload, token, state, drain_deadline \\ nil) do
-    case PaseoRelay.Capacity.start_delivery(token, state.config.capacity_mutation_timeout_ms) do
+    case ZenticRelay.Capacity.start_delivery(token, state.config.capacity_mutation_timeout_ms) do
       :ok ->
         source = self()
         deadline = drain_deadline || Deadline.after_ms(state.config.delivery_timeout_ms)
@@ -299,7 +299,7 @@ defmodule PaseoRelay.Socket do
         {:ok, Map.put(state, :delivery, delivery)}
 
       {:error, _reason} ->
-        PaseoRelay.Capacity.cancel_message(token)
+        ZenticRelay.Capacity.cancel_message(token)
         {:error, state}
     end
   end
@@ -329,15 +329,15 @@ defmodule PaseoRelay.Socket do
   end
 
   defp handle_control_input({:text, payload}, state) do
-    PaseoRelay.Metrics.observe_frame(byte_size(payload))
+    ZenticRelay.Metrics.observe_frame(byte_size(payload))
 
-    case PaseoRelay.Capacity.admit_message(
+    case ZenticRelay.Capacity.admit_message(
            byte_size(payload),
            state.config.capacity_mutation_timeout_ms
          ) do
       {:ok, token} ->
         result = handle_admitted_control(payload, state)
-        :ok = PaseoRelay.Capacity.finish_message(token)
+        :ok = ZenticRelay.Capacity.finish_message(token)
         result
 
       {:error, _reason} ->
@@ -349,7 +349,7 @@ defmodule PaseoRelay.Socket do
 
   defp finish_delivery(state) do
     delivery = state.delivery
-    PaseoRelay.Capacity.finish_message(delivery.token)
+    ZenticRelay.Capacity.finish_message(delivery.token)
     Map.delete(state, :delivery)
   end
 
@@ -375,14 +375,14 @@ defmodule PaseoRelay.Socket do
         {key, value} -> {key, value}
       end)
 
-    PaseoRelay.Connection.from_query(query)
+    ZenticRelay.Connection.from_query(query)
   end
 
   defp admit({namespace, limit}, holder, timeout),
     do: Capacity.admit_connection(namespace, limit, holder, timeout)
 
   defp route(connection, options, holder) do
-    case PaseoRelay.Ownership.resolve(connection.server_id) do
+    case ZenticRelay.Ownership.resolve(connection.server_id) do
       {:reroute, _target} = decision ->
         decision
 
@@ -395,7 +395,7 @@ defmodule PaseoRelay.Socket do
     with {:ok, admission} <-
            admit(options.connection_budget, holder, options.config.capacity_mutation_timeout_ms) do
       decision =
-        PaseoRelay.Ownership.route(
+        ZenticRelay.Ownership.route(
           connection.server_id,
           options.ownership_target,
           options.config.minimum_cluster_size
@@ -419,11 +419,11 @@ defmodule PaseoRelay.Socket do
   defp admission_monitor(_token), do: nil
 
   defp websocket_options(%{version: 2, role: :server, connection_id: ""}) do
-    websocket_options_with_limit(PaseoRelay.Protocol.maximum_control_payload_bytes())
+    websocket_options_with_limit(ZenticRelay.Protocol.maximum_control_payload_bytes())
   end
 
   defp websocket_options(_connection) do
-    websocket_options_with_limit(PaseoRelay.Protocol.maximum_message_payload_bytes())
+    websocket_options_with_limit(ZenticRelay.Protocol.maximum_message_payload_bytes())
   end
 
   defp websocket_options_with_limit(max_frame_size) do
@@ -456,7 +456,7 @@ defmodule PaseoRelay.Socket do
 
   defp reroute_headers(decision, header) do
     decision
-    |> PaseoRelay.Reroute.headers(header)
+    |> ZenticRelay.Reroute.headers(header)
     |> Map.new(fn {name, value} -> {to_string(name), value} end)
   end
 

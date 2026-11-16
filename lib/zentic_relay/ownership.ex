@@ -1,9 +1,9 @@
-defmodule PaseoRelay.Ownership do
+defmodule ZenticRelay.Ownership do
   @moduledoc false
 
-  alias PaseoRelay.Ownership.Owner
+  alias ZenticRelay.Ownership.Owner
 
-  @scope :paseo_relay_owners
+  @scope :zentic_relay_owners
 
   def route(server_id, target),
     do: route(server_id, target, configured_minimum_cluster_size())
@@ -89,23 +89,23 @@ defmodule PaseoRelay.Ownership do
   defp lookup(server_id), do: :syn.lookup(@scope, server_id)
 
   defp draining? do
-    if Process.whereis(PaseoRelay.Drain), do: PaseoRelay.Drain.draining?(), else: false
+    if Process.whereis(ZenticRelay.Drain), do: ZenticRelay.Drain.draining?(), else: false
   end
 
   defp configured_minimum_cluster_size do
-    :paseo_relay
-    |> Application.get_env(:runtime, PaseoRelay.Config.defaults())
-    |> PaseoRelay.Config.normalize()
+    :zentic_relay
+    |> Application.get_env(:runtime, ZenticRelay.Config.defaults())
+    |> ZenticRelay.Config.normalize()
     |> Map.fetch!(:minimum_cluster_size)
   end
 end
 
-defmodule PaseoRelay.Ownership.Owner do
+defmodule ZenticRelay.Ownership.Owner do
   use GenServer
 
-  alias PaseoRelay.Connection
-  alias PaseoRelay.Delivery.Deadline
-  alias PaseoRelay.Delivery.Writer
+  alias ZenticRelay.Connection
+  alias ZenticRelay.Delivery.Deadline
+  alias ZenticRelay.Delivery.Writer
 
   @reservation_ms 5_000
   @idle_ms 30_000
@@ -142,7 +142,7 @@ defmodule PaseoRelay.Ownership.Owner do
 
   @impl true
   def init({server_id, target}) do
-    case :syn.register(:paseo_relay_owners, server_id, self(), target) do
+    case :syn.register(:zentic_relay_owners, server_id, self(), target) do
       :ok ->
         {:ok,
          %{

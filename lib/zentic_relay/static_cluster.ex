@@ -1,4 +1,4 @@
-defmodule PaseoRelay.StaticCluster do
+defmodule ZenticRelay.StaticCluster do
   @moduledoc "Connects configured BEAM peers independently of DNS discovery."
   use GenServer
 
