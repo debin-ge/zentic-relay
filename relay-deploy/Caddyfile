@@ -1,0 +1,18 @@
+{
+	# Relay traffic is WebSocket over TCP. Skip HTTP/3 so no UDP 443 is needed.
+	servers {
+		protocols h1 h2
+	}
+}
+
+{$RELAY_DOMAIN} {
+	# Metrics stay on the compose network: scrape relay:4000/metrics from there.
+	handle /metrics* {
+		respond "not found" 404
+	}
+
+	# /ws (WebSocket upgrade), /health and /ready. Caddy proxies upgrades without extra config.
+	handle {
+		reverse_proxy relay:4000
+	}
+}
