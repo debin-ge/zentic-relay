@@ -1,0 +1,94 @@
+name: Image
+
+# Builds the container image for linux/amd64 and linux/arm64 and publishes it to
+# GHCR. It starts only by hand from the Actions tab, or on a pushed tag, and it
+# does not run the test suite: start the CI workflow for that.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to publish besides sha-<commit>, for example latest or 1.2.0."
+        required: false
+        default: latest
+  push:
+    tags: ["*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/debin-ge/zentic-relay
+
+jobs:
+  # Each architecture builds on its own runner, so nothing is emulated.
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+
+      - name: Build and push
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          tag="${IMAGE}:sha-${GITHUB_SHA::12}-${ARCH}"
+          docker build --provenance=false --tag "${tag}" .
+          docker push "${tag}"
+
+  manifest:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Log in to GHCR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+
+      - name: Publish the multi-architecture tags
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            extra="${GITHUB_REF_NAME#v}"
+          else
+            extra="${INPUT_TAG:-latest}"
+          fi
+          if [[ ! "${extra}" =~ ^[A-Za-z0-9_][A-Za-z0-9._-]{0,127}$ ]]; then
+            echo "::error::'${extra}' is not a valid image tag."
+            exit 1
+          fi
+          commit_tag="${IMAGE}:sha-${GITHUB_SHA::12}"
+          docker buildx imagetools create \
+            --tag "${commit_tag}" --tag "${IMAGE}:${extra}" \
+            "${commit_tag}-amd64" "${commit_tag}-arm64"
+          digest="$(docker buildx imagetools inspect "${commit_tag}" --format '{{.Manifest.Digest}}')"
+          {
+            echo "Published \`${commit_tag}\` and \`${IMAGE}:${extra}\`."
+            echo
+            echo "Immutable reference: \`${IMAGE}@${digest}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"

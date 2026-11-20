@@ -121,10 +121,12 @@ blocked deliveries are shed first.
 Build a production release with `MIX_ENV=prod asdf exec mix release`, or build
 the generic container with `docker build -t zentic-relay .`.
 
-CI publishes `ghcr.io/debin-ge/zentic-relay` after successful verification on
-`main`, tags, and same-repository pull requests. Main also updates
-`latest`; pull requests publish only `sha-<commit>` candidate tags. Pin consumers
-to the `sha256` digest reported in the publish job summary:
+The `Image` workflow publishes `ghcr.io/debin-ge/zentic-relay` for `linux/amd64`
+and `linux/arm64`. It starts only by hand from the Actions tab, or on a pushed
+tag, and it does not run the test suite; start the `CI` workflow for that. Each
+run publishes `sha-<first 12 characters of the commit>` plus one more tag:
+`latest` by default, or the pushed tag's name without a leading `v`. Pin consumers
+to the `sha256` digest reported in the job summary:
 
 ```sh
 docker pull ghcr.io/debin-ge/zentic-relay@sha256:<64-hex-digest>
