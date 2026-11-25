@@ -695,3 +695,18 @@
 - The first local minimal-container run exhausted its default descriptor limit
   in the existing unread-control pressure fixture. Repeating with the documented
   real-socket test budget passed; application and pressure-test code were unchanged.
+
+## Byte-budget test receives with raw sockets
+
+- Red: CI failed `completed messages cannot exceed the strict node byte budget`
+  with an empty mailbox after 30 s. In `elixir:1.20.2-otp-29` the test passed in
+  16–21 s on 8 CPUs, took 30.5 s on 4 and failed on 2. The relay was not at
+  fault: its four WebSockex `DigestClient` receivers each read a 32 MiB frame,
+  and WebSockex 0.5.1 rejoins its accumulated receive buffer on every TCP read,
+  so four concurrent maximum messages cost CPU time that grows with frame size.
+  On a slow runner a receiver fell behind the 30 s delivery deadline, the relay
+  shed it, and no digest message arrived.
+- Green: the four destinations now use raw TCP sockets with a 4 MiB receive
+  buffer, read concurrently as in the unfragmented heap-fuse test, and check size
+  and SHA-256. The test passed 3/3 in 21 s on 2 CPUs. Relay code and the
+  asserted budget are unchanged.

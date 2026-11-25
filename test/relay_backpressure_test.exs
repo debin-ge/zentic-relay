@@ -252,18 +252,22 @@ defmodule ZenticRelay.BackpressureTest do
 
     destinations =
       Enum.map(1..4, fn index ->
-        digest_connect(v2_url(port, "budget-#{port}-#{index}", "server", "missing"))
+        raw_connect(port, v2_path("budget-#{port}-#{index}", "server", "missing"),
+          receive_buffer: 4 * 1024 * 1024
+        )
       end)
 
-    Enum.each(destinations, fn destination ->
-      assert_receive {:digest_frame, ^destination, :binary, @maximum_message_payload_bytes,
-                      ^digest},
-                     30_000
+    destinations
+    |> Enum.map(fn destination -> Task.async(fn -> recv_server_frame(destination) end) end)
+    |> Enum.each(fn receiver ->
+      assert {:binary, delivered} = Task.await(receiver, 30_000)
+      assert byte_size(delivered) == @maximum_message_payload_bytes
+      assert :crypto.hash(:sha256, delivered) == digest
     end)
 
     await_reserved(&(&1 == 0))
     Enum.each(Enum.take(sockets, 4), &close_raw/1)
-    Enum.each(destinations, &stop_resource({:client, &1}))
+    Enum.each(destinations, &close_raw/1)
     await_metric(:active_websockets, &(&1 == baseline))
   end
 
