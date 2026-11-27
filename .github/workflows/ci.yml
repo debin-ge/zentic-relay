@@ -1,7 +1,9 @@
 name: CI
 on:
-  # Manual only. Start it from the Actions tab for the ref to check.
+  # Runs on every push to main. Start it from the Actions tab to check another ref.
   # The Image workflow publishes the container image.
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read

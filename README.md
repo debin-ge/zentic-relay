@@ -123,7 +123,8 @@ the generic container with `docker build -t zentic-relay .`.
 
 The `Image` workflow publishes `ghcr.io/debin-ge/zentic-relay` for `linux/amd64`
 and `linux/arm64`. It starts only by hand from the Actions tab, or on a pushed
-tag, and it does not run the test suite; start the `CI` workflow for that. Each
+tag, and it does not run the test suite; the `CI` workflow does, on every push
+to `main` or by hand from the Actions tab. Each
 run publishes `sha-<first 12 characters of the commit>` plus one more tag:
 `latest` by default, or the pushed tag's name without a leading `v`. Pin consumers
 to the `sha256` digest reported in the job summary:
